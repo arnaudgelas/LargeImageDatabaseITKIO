@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Visualization Toolkit
-  Module:    vtkSQLQuery.h
+  Module:    SQLQuery.h
 
   Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
   All rights reserved.
@@ -17,13 +17,13 @@
   Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
   the U.S. Government retains certain rights in this software.
 -------------------------------------------------------------------------*/
-// .NAME vtkSQLQuery - executes an sql query and retrieves results
+// .NAME SQLQuery - executes an sql query and retrieves results
 //
 // .SECTION Description
 // The abstract superclass of SQL query classes.  Instances of subclasses
-// of vtkSQLQuery are created using the GetQueryInstance() function in
+// of SQLQuery are created using the GetQueryInstance() function in
 // vtkSQLDatabase.  To implement a query connection for a new database
-// type, subclass both vtkSQLDatabase and vtkSQLQuery, and implement the
+// type, subclass both vtkSQLDatabase and SQLQuery, and implement the
 // required functions.  For the query class, this involves the following:
 //
 // Execute() - Execute the query on the database.  No results need to be
@@ -51,34 +51,36 @@
 // .SECTION See Also
 // vtkSQLDatabase
 
-#ifndef __vtkSQLQuery_h
-#define __vtkSQLQuery_h
+#ifndef __SQLQuery_h
+#define __SQLQuery_h
 
 #include "vtkRowQuery.h"
-#include "vtkStdString.h" // for EscapeString()
+#include "std::string.h" // for EscapeString()
 
 class vtkSQLDatabase;
 class vtkVariant;
 class vtkVariantArray;
 
-class VTK_IO_EXPORT vtkSQLQuery : public vtkRowQuery
+namespace itk
+{
+class SQLQuery : public vtkRowQuery
 {
 public:
-  vtkTypeMacro(vtkSQLQuery, vtkRowQuery);
+  vtkTypeMacro(SQLQuery, vtkRowQuery);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   // Description:
   // The query string to be executed.  Since some databases will
   // process the query string as soon as it's set, this method returns
   // a boolean to indicate success or failure.
-  virtual bool SetQuery(const char *query);
-  virtual const char *GetQuery();
+  virtual bool SetQuery(const std::string& query);
+  virtual std::string GetQuery();
 
   // Description:
   // Return true if the query is active (i.e. execution was successful
   // and results are ready to be fetched).  Returns false on error or
   // inactive query.
-  bool IsActive() { return this->Active; }
+  bool IsActive() const { return this->Active; }
 
   // Description:
   // Execute the query.  This must be performed
@@ -96,7 +98,7 @@ public:
 
   // Description:
   // Return the database associated with the query.
-  vtkGetObjectMacro(Database, vtkSQLDatabase);
+  vtkGetObjectMacro(Database, SQLDatabase);
 
 //BTX
   // Description:
@@ -140,8 +142,8 @@ public:
   virtual bool BindParameter(int index, int value);
 //BTX
   virtual bool BindParameter(int index, long value);
-  virtual bool BindParameter(int index, vtkTypeUInt64 value);
-  virtual bool BindParameter(int index, vtkTypeInt64 value);
+  virtual bool BindParameter(int index, Identifier value);
+  virtual bool BindParameter(int index, Identifier value);
 //ETX
   virtual bool BindParameter(int index, float value);
   virtual bool BindParameter(int index, double value);
@@ -152,7 +154,7 @@ public:
   // Bind a string value by specifying an array and a size
   virtual bool BindParameter(int index, const char *stringValue, size_t length);
 //BTX
-  virtual bool BindParameter(int index, const vtkStdString &string);
+  virtual bool BindParameter(int index, const std::string &string);
 //ETX
   virtual bool BindParameter(int index, vtkVariant var);
   // Description:
@@ -174,38 +176,39 @@ public:
   // A default, simple-minded implementation is provided for
   // database backends that do not provde a way to escape
   // strings for use inside queries.
-  virtual vtkStdString EscapeString( vtkStdString s, bool addSurroundingQuotes = true );
+  virtual std::string EscapeString( std::string s, bool addSurroundingQuotes = true );
 //ETX
 
   // Description:
   // Escape a string for inclusion into an SQL query.
   // This method exists to provide a wrappable version of
-  // the method that takes and returns vtkStdString objects.
+  // the method that takes and returns std::string objects.
   // You are responsible for calling delete [] on the
   // character array returned by this method.
-  // This method simply calls the vtkStdString variant and thus
+  // This method simply calls the std::string variant and thus
   // need not be re-implemented by subclasses.
-  char* EscapeString( const char* src, bool addSurroundingQuotes );
+  std::string EscapeString( const std::string& src, bool addSurroundingQuotes );
 
 protected:
-  vtkSQLQuery();
-  ~vtkSQLQuery();
+  SQLQuery();
+  ~SQLQuery();
 
   // Description:
   // Set the database associated with the query.
   // This is only to be called by the corresponding
   // database class on creation of the query in
   // GetQueryInstance().
-  void SetDatabase(vtkSQLDatabase* db);
+  void SetDatabase(SQLDatabase* db);
 
-  char* Query;
-  vtkSQLDatabase* Database;
-  bool Active;
+  std::string m_Query;
+  SQLDatabase::Pointer m_Database;
+  bool m_Active;
 
 private:
-  vtkSQLQuery(const vtkSQLQuery &); // Not implemented.
-  void operator=(const vtkSQLQuery &); // Not implemented.
+  SQLQuery(const SQLQuery &); // Not implemented.
+  void operator=(const SQLQuery &); // Not implemented.
 };
+}
 
-#endif // __vtkSQLQuery_h
+#endif // __SQLQuery_h
 

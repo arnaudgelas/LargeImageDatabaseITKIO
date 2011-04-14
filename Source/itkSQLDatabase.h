@@ -52,7 +52,7 @@ PURPOSE.  See the above copyright notice for more information.
 
 #include "vtkObject.h"
 
-#include "vtkStdString.h" // Because at least one method returns a vtkStdString
+#include "std::string.h" // Because at least one method returns a std::string
 
 class vtkInformationObjectBaseKey;
 class vtkSQLDatabaseSchema;
@@ -77,7 +77,9 @@ class vtkStringArray;
 // (i.e., VARCHAR), when no size has been specified
 #define VTK_SQL_DEFAULT_COLUMN_SIZE 32
 
-class VTK_IO_EXPORT vtkSQLDatabase : public vtkObject
+namespace itk
+{
+class SQLDatabase : public Object
 {
 public:
   vtkTypeMacro(vtkSQLDatabase, vtkObject);
@@ -88,7 +90,7 @@ public:
   // You need to set up any database parameters before calling this function.
   // For database connections that do not require a password, pass an empty string.
   // Returns true is the database was opened sucessfully, and false otherwise.
-  virtual bool Open(const char* password) = 0;
+  virtual bool Open(const std::string& password) = 0;
 
   // Description:
   // Close the connection to the database.
@@ -112,11 +114,11 @@ public:
   // use the standard vtkGetStringMacro in their
   // implementation, because 99% of the time that
   // will not be the correct thing to do...
-  virtual const char* GetLastErrorText() = 0;
+  virtual std::string GetLastErrorText() = 0;
 
   // Description:
   // Get the type of the database (e.g. mysql, psql,..).
-  virtual char* GetDatabaseType() = 0;
+  virtual std::string GetDatabaseType() = 0;
 
   // Description:
   // Get the list of tables from the database.
@@ -124,7 +126,7 @@ public:
 
   // Description:
   // Get the list of fields for a particular table.
-  virtual vtkStringArray* GetRecord(const char *table) = 0;
+  virtual vtkStringArray* GetRecord(const std::string& table) = 0;
 
   // Description:
   // Return whether a feature is supported by the database.
@@ -132,7 +134,7 @@ public:
 
   // Description:
   // Get the URL of the database.
-  virtual vtkStdString GetURL() = 0;
+  virtual std::string GetURL() = 0;
 
   // Description:
   // Return the SQL string with the syntax of the preamble following a
@@ -140,7 +142,7 @@ public:
   // NB: by default, this method returns an empty string.
   // It must be overwritten for those SQL backends which allow such
   // preambles such as, e.g., MySQL.
-  virtual vtkStdString GetTablePreamble( bool ) { return vtkStdString(); }
+  virtual std::string GetTablePreamble( bool ) { return std::string(); }
 
   // Description:
   // Return the SQL string with the syntax to create a column inside a
@@ -149,7 +151,7 @@ public:
   // <column name> <column type> <column attributes>
   // It must be overwritten for those SQL backends which have a different
   // syntax such as, e.g., MySQL.
-  virtual vtkStdString GetColumnSpecification( vtkSQLDatabaseSchema* schema,
+  virtual std::string GetColumnSpecification( vtkSQLDatabaseSchema* schema,
                                                int tblHandle,
                                                int colHandle );
 
@@ -164,7 +166,7 @@ public:
   // within a CREATE TABLE statement. Therefore, should such an INDEX arise
   // in the schema, a CREATE INDEX statement is returned and skipped is
   // set to true. Otherwise, skipped will always be returned false.
-  virtual vtkStdString GetIndexSpecification( vtkSQLDatabaseSchema* schema,
+  virtual std::string GetIndexSpecification( vtkSQLDatabaseSchema* schema,
                                               int tblHandle,
                                               int idxHandle,
                                               bool& skipped );
@@ -178,7 +180,7 @@ public:
   // <trigger name> {BEFORE | AFTER} <event> ON <table name> FOR EACH ROW <trigger action>
   // It must be overwritten for those SQL backends which have a different
   // syntax such as, e.g., PostgreSQL.
-  virtual vtkStdString GetTriggerSpecification( vtkSQLDatabaseSchema* schema,
+  virtual std::string GetTriggerSpecification( vtkSQLDatabaseSchema* schema,
                                                 int tblHandle,
                                                 int trgHandle );
 
@@ -186,7 +188,7 @@ public:
   // Create a the proper subclass given a URL.
   // The URL format for SQL databases is a true URL of the form:
   //   'protocol://'[[username[':'password]'@']hostname[':'port]]'/'[dbname] .
-  static vtkSQLDatabase* CreateFromURL( const char* URL );
+  static vtkSQLDatabase* CreateFromURL( const std::string& URL );
 
   // Description:
   // Effect a database schema.
@@ -195,7 +197,7 @@ public:
 //BTX
   // Description:
   // Type for CreateFromURL callback.
-  typedef vtkSQLDatabase* (*CreateFunction)(const char* URL);
+  typedef vtkSQLDatabase* (*CreateFunction)(const std::string& URL);
 //ETX
 
   // Description:
@@ -224,7 +226,7 @@ protected:
   // Subclasses should override this method to determine connection parameters
   // given the URL. This is called by CreateFromURL() to initialize the instance.
   // Look at CreateFromURL() for details about the URL format.
-  virtual bool ParseURL( const char* url ) = 0;
+  virtual bool ParseURL( const std::string& url ) = 0;
 
 private:
   vtkSQLDatabase(const vtkSQLDatabase &); // Not implemented.
@@ -236,5 +238,6 @@ private:
   static vtkCallbackVector* Callbacks;
 //ETX
 };
+}
 
 #endif // __vtkSQLDatabase_h
